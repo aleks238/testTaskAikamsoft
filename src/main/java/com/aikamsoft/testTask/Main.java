@@ -1,17 +1,28 @@
 package com.aikamsoft.testTask;
 
 
+import com.aikamsoft.testTask.dao.CustomerDao;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
 
 
 @Slf4j
 public class Main {
     public static void main(String[] args) {
         Main object = new Main();
-        object.parseInputData(object, args);
+
+        try {
+            object.parseInputData(object, args);
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void parseInputData(Main object, String[] args) {
+    private void parseInputData(Main object, String[] args) throws IOException, ParseException {
         if (args.length < 3){
             throw new RuntimeException("Неправильное количество входных параметров");
             //write to file
@@ -28,7 +39,10 @@ public class Main {
         }
     }
 
-    private void findCustomers(String outputFile, String inputFile){
+    private void findCustomers(String outputFile, String inputFile) throws IOException, ParseException {
+        CustomerDao customerDao = new CustomerDao();
+        JSONObject outputJsonObject = customerDao.findCustomers("a","b");
+        //customerDao.writeResultsToFile("output.json", outputJsonObject);
 
     }
 
