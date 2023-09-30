@@ -1,0 +1,22 @@
+create table products(
+    id              bigserial primary key,
+    title           varchar(255),
+    price           int
+);
+
+create table customers(
+    id          bigserial primary key,
+    name        varchar (30) not null ,
+    lastName    varchar(80) not null
+);
+
+create table purchases(
+    id              bigserial primary key,
+    customer_id     bigint not null references customers(id),
+    product_id      bigint not null references products(id),
+    purchase_date   timestamp default current_timestamp
+);
+
+insert into products (title, price) values ('bread', 45), ('apple', 110), ('milk', 75);
+insert into customers (name, lastName) values ('Jack', 'Jackson'), ('Bill', 'Wilson'), ('Bob', 'Murphy');
+insert into purchases (customer_id, product_id) values (1, 1),(1, 2),(1, 1),(1, 1),(1,3),(2, 1),(2, 2),(2, 3),(2, 3),(3, 1),(3, 2),(3,3);
