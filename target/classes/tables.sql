@@ -7,7 +7,7 @@ create table products(
 create table customers(
     id          bigserial primary key,
     name        varchar (30) not null ,
-    lastName    varchar(80) not null
+    last_name    varchar(80) not null
 );
 
 create table purchases(
@@ -18,5 +18,5 @@ create table purchases(
 );
 
 insert into products (title, price) values ('bread', 45), ('apple', 110), ('milk', 75);
-insert into customers (name, lastName) values ('Jack', 'Jackson'), ('Bill', 'Wilson'), ('Bob', 'Murphy');
+insert into customers (name, last_name) values ('Jack', 'Jackson'),('Bill', 'Jackson'), ('Bill', 'Wilson'), ('Bob', 'Murphy');
 insert into purchases (customer_id, product_id) values (1, 1),(1, 2),(1, 1),(1, 1),(1,3),(2, 1),(2, 2),(2, 3),(2, 3),(3, 1),(3, 2),(3,3);

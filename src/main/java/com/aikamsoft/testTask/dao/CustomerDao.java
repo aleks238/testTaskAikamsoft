@@ -1,5 +1,6 @@
 package com.aikamsoft.testTask.dao;
 
+import com.aikamsoft.testTask.databaseConnection.DatabaseConnection;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -7,6 +8,11 @@ import org.json.simple.parser.ParseException;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
 
 public class CustomerDao {
 
@@ -17,8 +23,6 @@ public class CustomerDao {
         Long minExpenses;
         Long maxExpenses;
         Long badCustomers;
-
-        //Connection connection = DatabaseConnection.getConnection();
         /*
         ObjectMapper mapper = new ObjectMapper();
         Customer customer = mapper.readValue(new File("C:/Users/lanxe/Desktop/test.json"), Customer.class);
@@ -37,7 +41,8 @@ public class CustomerDao {
                 JSONObject criteria = (JSONObject) jsonArray.get(i);
                 if (criteria.containsKey("lastName")) {
                     lastName = (String) criteria.get("lastName");
-                    System.out.println(lastName);
+                    CustomerDao customerDao = new CustomerDao();
+                    System.out.println(customerDao.findCustomerByLastName(lastName));
                 }
                 if (criteria.containsKey("productName")) {
                     productName = (String) criteria.get("productName");
@@ -64,5 +69,30 @@ public class CustomerDao {
             throw new RuntimeException(e.getMessage());
             //write to file
         }
+    }
+
+    private JSONArray findCustomerByLastName(String lastName) {
+        String name;
+        JSONArray jsonArray = new JSONArray();
+        Connection connection = DatabaseConnection.getConnection();
+        String query = "SELECT last_name, name FROM customers WHERE last_name = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, lastName);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    name = rs.getString("name");
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(name, lastName);
+                    jsonArray.add(jsonObject);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return jsonArray;
+    }
+
+    private JSONArray findByProductNameAndMinTimes(String productName, String minTimes){
+
     }
 }

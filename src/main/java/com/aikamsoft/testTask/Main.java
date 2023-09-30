@@ -14,6 +14,7 @@ public class Main {
     private void parseInputData(Main object, String[] args) {
         if (args.length < 3){
             throw new RuntimeException("Неправильное количество входных параметров");
+            //write to file
         }
         String operation = args[0];
         String outputFile = args[1];
