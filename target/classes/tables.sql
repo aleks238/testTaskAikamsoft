@@ -7,7 +7,7 @@ create table products(
 create table customers(
     id          bigserial primary key,
     name        varchar (30) not null ,
-    last_name    varchar(80) not null
+    last_name   varchar(80) not null
 );
 
 create table purchases(

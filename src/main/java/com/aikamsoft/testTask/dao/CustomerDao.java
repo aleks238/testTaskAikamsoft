@@ -12,7 +12,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 
 public class CustomerDao {
 
@@ -23,6 +22,7 @@ public class CustomerDao {
         Long minExpenses;
         Long maxExpenses;
         Long badCustomers;
+        CustomerDao customerDao = new CustomerDao();
         /*
         ObjectMapper mapper = new ObjectMapper();
         Customer customer = mapper.readValue(new File("C:/Users/lanxe/Desktop/test.json"), Customer.class);
@@ -41,24 +41,18 @@ public class CustomerDao {
                 JSONObject criteria = (JSONObject) jsonArray.get(i);
                 if (criteria.containsKey("lastName")) {
                     lastName = (String) criteria.get("lastName");
-                    CustomerDao customerDao = new CustomerDao();
                     System.out.println(customerDao.findCustomerByLastName(lastName));
                 }
                 if (criteria.containsKey("productName")) {
                     productName = (String) criteria.get("productName");
-                    System.out.println(productName);
-                }
-                if (criteria.containsKey("minTimes")) {
                     minTimes = (Long) criteria.get("minTimes");
-                    System.out.println(minTimes);
+                    //System.out.println(customerDao.findCustomerByProductNameAndMinTimes(productName, minTimes));
                 }
                 if (criteria.containsKey("minExpenses")) {
                     minExpenses = (Long) criteria.get("minExpenses");
-                    System.out.println(minExpenses);
-                }
-                if (criteria.containsKey("maxExpenses")) {
                     maxExpenses = (Long) criteria.get("maxExpenses");
-                    System.out.println(maxExpenses);
+                    System.out.println(minExpenses + " " + maxExpenses);
+                    System.out.println(customerDao.findCustomersByMinAndMaxPrice(minExpenses,maxExpenses));
                 }
                 if (criteria.containsKey("badCustomers")) {
                     badCustomers = (Long) criteria.get("badCustomers");
@@ -92,7 +86,57 @@ public class CustomerDao {
         return jsonArray;
     }
 
-    private JSONArray findByProductNameAndMinTimes(String productName, String minTimes){
+    private JSONArray findCustomerByProductNameAndMinTimes(String productName, Long minTimes) {
+        String name;
+        String lastName;
+        JSONArray jsonArray = new JSONArray();
+        Connection connection = DatabaseConnection.getConnection();
+        String query = "SELECT count(*) > ? last_name, name FROM customers " +
+                "LEFT JOIN customers.id=purchases.customer_id " +
+                "LEFT JOIN products.id=purchases.product_id " +
+                "WHERE title=?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(2, productName);
+            ps.setLong(1, minTimes);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    name = rs.getString("name");
+                    lastName = rs.getString("last_name");
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(name, lastName);
+                    jsonArray.add(jsonObject);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return jsonArray;
+    }
 
+    private JSONArray findCustomersByMinAndMaxPrice(Long minPrice, Long maxPrice){
+        String name;
+        String lastName;
+        JSONArray jsonArray = new JSONArray();
+        Connection connection = DatabaseConnection.getConnection();
+        String query = "SELECT last_name, name FROM customers " +
+                "LEFT JOIN purchases ON customers.id=purchases.customer_id " +
+                "LEFT JOIN products ON products.id=purchases.product_id " +
+                "WHERE price <= ? AND price >= ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setLong(1, maxPrice);
+            ps.setLong(2, minPrice);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    name = rs.getString("name");
+                    lastName = rs.getString("last_name");
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(name, lastName);
+                    jsonArray.add(jsonObject);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return jsonArray;
     }
 }
