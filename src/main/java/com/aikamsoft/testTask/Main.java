@@ -1,10 +1,8 @@
 package com.aikamsoft.testTask;
 
 
-import com.aikamsoft.testTask.dao.CustomerDao;
+import com.aikamsoft.testTask.services.SearchService;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -40,7 +38,7 @@ public class Main {
     }
 
     private void findCustomers(String outputFile, String inputFile) throws IOException, ParseException {
-        CustomerDao customerDao = new CustomerDao();
+        SearchService searchService = new SearchService();
         //JSONObject outputJsonObject = customerDao.findCustomers("a","b");
         //customerDao.writeResultsToFile("output.json", outputJsonObject);
 
