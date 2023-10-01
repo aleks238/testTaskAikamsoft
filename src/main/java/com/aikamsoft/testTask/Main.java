@@ -41,7 +41,7 @@ public class Main {
 
     private void findCustomers(String outputFile, String inputFile) throws IOException, ParseException {
         CustomerDao customerDao = new CustomerDao();
-        JSONObject outputJsonObject = customerDao.findCustomers("a","b");
+        //JSONObject outputJsonObject = customerDao.findCustomers("a","b");
         //customerDao.writeResultsToFile("output.json", outputJsonObject);
 
     }

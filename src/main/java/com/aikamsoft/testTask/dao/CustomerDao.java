@@ -14,11 +14,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+@SuppressWarnings("unchecked")
 public class CustomerDao {
 
-
-    public JSONObject findCustomers(String outputFile, String inputFile) throws IOException, ParseException {
+    public JSONArray findCustomers(String outputFile, String inputFile) {
         String lastName;
         String productName;
         Long minTimes;
@@ -26,16 +25,11 @@ public class CustomerDao {
         Long maxExpenses;
         Long badCustomersNumber;
         CustomerDao customerDao = new CustomerDao();
-        JSONObject outputJsonObject = new JSONObject();
-        /*
-        ObjectMapper mapper = new ObjectMapper();
-        Customer customer = mapper.readValue(new File("C:/Users/lanxe/Desktop/test.json"), Customer.class);
-        System.out.println(customer.getName() + " " + customer.getLastName());
-         */
         inputFile = "C:/Users/lanxe/Desktop/test1.json";
         outputFile = "C:/Users/lanxe/Desktop/output.json";
         JSONParser parser = new JSONParser();
         JSONObject jsonObject;
+        JSONArray resultJsonArray = new JSONArray(); //Ответ состоит из array of JSON, ответ на каждый критерий нужно оборачивать в отдельный JSON, который состоит из названия критерия и sub array.
         try {
             jsonObject = (JSONObject) parser.parse(new FileReader(inputFile));
             JSONArray inputJsonArray = (JSONArray) jsonObject.get("criterias");
@@ -44,7 +38,7 @@ public class CustomerDao {
                 JSONObject criteria = (JSONObject) inputJsonArray.get(i);
                 if (criteria.containsKey("lastName")) {
                     lastName = (String) criteria.get("lastName");
-                    customerDao.findCustomerByLastName(lastName, outputJsonObject);
+                    customerDao.findCustomerByLastName(lastName, resultJsonArray);
                 }
                 if (criteria.containsKey("productName")) {
                     productName = (String) criteria.get("productName");
@@ -54,7 +48,7 @@ public class CustomerDao {
                 if (criteria.containsKey("minExpenses")) {
                     minExpenses = (Long) criteria.get("minExpenses");
                     maxExpenses = (Long) criteria.get("maxExpenses");
-                    customerDao.findCustomersByMinAndMaxPrice(minExpenses, maxExpenses, outputJsonObject);
+                    customerDao.findCustomersByMinAndMaxPrice(minExpenses, maxExpenses, resultJsonArray);
                 }
                 if (criteria.containsKey("badCustomers")) {
                     badCustomersNumber = (Long) criteria.get("badCustomers");
@@ -65,18 +59,16 @@ public class CustomerDao {
             throw new RuntimeException(e.getMessage());
             //write to file
         }
-        return outputJsonObject;
+        return resultJsonArray;
     }
 
-    private void findCustomerByLastName(String lastName, JSONObject outputJsonObject) {
+    private void findCustomerByLastName(String lastName, JSONArray resultJsonArray) {
         String name;
-
+        JSONObject object = new JSONObject();
         JSONObject criteria = new JSONObject();
         criteria.put("lastName", lastName);
-        outputJsonObject.put("criteria1", criteria);
-
+        object.put("criteria", criteria);
         JSONArray jsonArray = new JSONArray();
-
         Connection connection = DatabaseConnection.getConnection();
         String query = "SELECT last_name, name FROM customers WHERE last_name = ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -85,17 +77,20 @@ public class CustomerDao {
                 while (rs.next()) {
                     name = rs.getString("name");
                     JSONObject jsonObjectOfArray = new JSONObject();
-                    jsonObjectOfArray.put(name, lastName);
+                    jsonObjectOfArray.put("name", name);
+                    jsonObjectOfArray.put("lastName", lastName);
+                    //jsonObjectOfArray.put(name, lastName);
                     jsonArray.add(jsonObjectOfArray);
                 }
             }
-            outputJsonObject.put("results1", jsonArray);
+            object.put("results", jsonArray);
+            resultJsonArray.add(object);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private JSONArray findCustomerByProductNameAndMinTimes(String productName, Long minTimes) {
+    private void findCustomerByProductNameAndMinTimes(String productName, Long minTimes) {
         String name;
         String lastName;
         JSONArray jsonArray = new JSONArray();
@@ -117,20 +112,18 @@ public class CustomerDao {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
-        return jsonArray;
     }
 
-    private void findCustomersByMinAndMaxPrice(Long minPrice, Long maxPrice, JSONObject outputJsonObject) {
+    private void findCustomersByMinAndMaxPrice(Long minPrice, Long maxPrice, JSONArray resultJsonArray) {
         String name;
         String lastName;
-
+        JSONObject object = new JSONObject();
         JSONObject criteria = new JSONObject();
         criteria.put("minPrice", minPrice);
         criteria.put("maxPrice", maxPrice);
-        outputJsonObject.put("criteria", criteria);
-
+        object.put("criteria", criteria);
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
         String query = "SELECT last_name, name FROM customers " +
@@ -145,17 +138,20 @@ public class CustomerDao {
                     name = rs.getString("name");
                     lastName = rs.getString("last_name");
                     JSONObject jsonObjectOfArray = new JSONObject();
-                    jsonObjectOfArray.put(name, lastName);
+                    jsonObjectOfArray.put("name", name);
+                    jsonObjectOfArray.put("lastName", lastName);
+                    //jsonObjectOfArray.put(name, lastName);
                     jsonArray.add(jsonObjectOfArray);
                 }
             }
-            outputJsonObject.put("results", jsonArray);
+            object.put("results", jsonArray);
+            resultJsonArray.add(object);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
-    private JSONArray findBadCustomers(Long badCustomersNumber) {
+    private void findBadCustomers(Long badCustomersNumber) {
         String name;
         String lastName;
         JSONArray jsonArray = new JSONArray();
@@ -179,11 +175,9 @@ public class CustomerDao {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return jsonArray;
     }
 
-
-    public void writeResultsToFile(String nameOfOutputFile, JSONArray outJsonArray) throws IOException {
+    public void writeResultsToFile(String nameOfOutputFile, JSONObject resultJsonObject) throws IOException {
         String str = System.getProperty("user.home") + File.separator + "Desktop" + File.separator + nameOfOutputFile;
         String desktopPath = str.replace("\\", "/");
         File outputFile = new File(desktopPath);
@@ -198,7 +192,7 @@ public class CustomerDao {
             ind++;
         }
         FileWriter fileWriter = new FileWriter(outputFile);
-        JSONArray.writeJSONString(outJsonArray, fileWriter);
-
+        fileWriter.write(resultJsonObject.toJSONString());
+        fileWriter.close();
     }
 }

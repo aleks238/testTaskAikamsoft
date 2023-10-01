@@ -1,7 +1,7 @@
 package com.aikamsoft.testTask.test;
 
 import com.aikamsoft.testTask.dao.CustomerDao;
-import com.aikamsoft.testTask.dto.CriteriaDto;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -14,9 +14,14 @@ public class Test {
     public static void main(String[] args) throws IOException, ParseException {
 
         CustomerDao customerDao = new CustomerDao();
-        JSONObject outputJsonObject = customerDao.findCustomers("a","b");
-        System.out.println(outputJsonObject);
-        //customerDao.writeResultsToFile("output.json", outJsonArray);
+        JSONArray resultJsonArray = customerDao.findCustomers("a","b");
+
+        JSONObject resultJsonObject = new JSONObject();
+        resultJsonObject.put("type", "search");
+        resultJsonObject.put("results", resultJsonArray);
+        System.out.println(resultJsonObject);
+
+        customerDao.writeResultsToFile("output.json", resultJsonObject);
 
 
 
