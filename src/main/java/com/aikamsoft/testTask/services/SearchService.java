@@ -3,10 +3,9 @@ package com.aikamsoft.testTask.services;
 import com.aikamsoft.testTask.databaseConnection.DatabaseConnection;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.*;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +13,7 @@ import java.sql.SQLException;
 
 @SuppressWarnings("unchecked")
 public class SearchService {
-    public JSONObject parseInput(String inputFile) throws IOException, ParseException {
+    public JSONObject performSearchByCriteria(String inputFile) throws IOException, ParseException {
         String lastName;
         String productName;
         Long minTimes;
@@ -22,17 +21,13 @@ public class SearchService {
         Long maxExpenses;
         Long badCustomersNumber;
 
-        JSONParser parser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(inputFile));
-        JSONArray inputJsonArray = (JSONArray) jsonObject.get("criterias");
-
-        SearchService searchService = new SearchService();
+        JSONArray inputJsonArray = new FileReaderService().redSearchCriteria(inputFile);
+        JSONArray resultJsonArray = new JSONArray(); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
         JSONObject resultJsonObject = new JSONObject();
-        JSONArray resultJsonArray = new JSONArray(); //Ответ состоит из array of JSON, ответ на каждый критерий нужно оборачивать в отдельный JSON, который состоит из названия критерия и sub array.
+        SearchService searchService = new SearchService();
 
-
-        for (int i = 0; i < inputJsonArray.size(); i++) {
-            JSONObject criteria = (JSONObject) inputJsonArray.get(i);
+        for (Object o : inputJsonArray) {
+            JSONObject criteria = (JSONObject) o;
             if (criteria.containsKey("lastName")) {
                 lastName = (String) criteria.get("lastName");
                 searchService.findCustomerByLastName(lastName, resultJsonArray);
@@ -52,7 +47,7 @@ public class SearchService {
                 //searchService.findBadCustomers(badCustomersNumber,resultJsonArray);
             }
         }
-        searchService.createResultJson(resultJsonArray,resultJsonObject);
+        searchService.createResultJson(resultJsonArray, resultJsonObject);
         return resultJsonObject;
     }
 
@@ -193,8 +188,7 @@ public class SearchService {
     }
 
 
-
-    private void createResultJson(JSONArray resultJsonArray, JSONObject resultJsonObject){
+    private void createResultJson(JSONArray resultJsonArray, JSONObject resultJsonObject) {
         resultJsonObject.put("type", "search");
         resultJsonObject.put("results", resultJsonArray);
     }

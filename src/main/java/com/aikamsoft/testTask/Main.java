@@ -1,12 +1,10 @@
 package com.aikamsoft.testTask;
 
-
 import com.aikamsoft.testTask.services.SearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
-
 
 @Slf4j
 public class Main {
@@ -14,25 +12,25 @@ public class Main {
         Main object = new Main();
 
         try {
-            object.parseInputData(object, args);
+            object.parseInputArgs(object, args);
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
     }
 
-    private void parseInputData(Main object, String[] args) throws IOException, ParseException {
-        if (args.length < 3){
+    private void parseInputArgs(Main object, String[] args) throws IOException, ParseException {
+        if (args.length < 3) {
             throw new RuntimeException("Неправильное количество входных параметров");
             //write to file
         }
         String operation = args[0];
         String outputFile = args[1];
         String inputFile = args[2];
-        if (operation.equals("search")){
-            object.findCustomers(outputFile,inputFile);
-        }else if (operation.equals("stat")){
-            object.getStatistics(outputFile,inputFile);
-        }else {
+        if (operation.equals("search")) {
+            object.findCustomers(outputFile, inputFile);
+        } else if (operation.equals("stat")) {
+            object.getStatistics(outputFile, inputFile);
+        } else {
             throw new RuntimeException("Введен некорректный тип операции");
         }
     }
@@ -44,7 +42,7 @@ public class Main {
 
     }
 
-    private void getStatistics(String outputFile, String inputFile){
+    private void getStatistics(String outputFile, String inputFile) {
 
     }
 }
