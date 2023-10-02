@@ -26,45 +26,54 @@ public class StatisticService {
         String endDate = (String) jsonObject.get("endDate");
         Integer period = statisticService.getPeriod(startDate, endDate);
 
-        statisticService.getStatisticForPeriod(startDate,endDate,resultJsonArray);
+        statisticService.getStatistic(startDate,endDate,resultJsonArray);
         statisticService.createResultJson(resultJsonArray, resultJsonObject, period);
         return resultJsonObject;
     }
 
-    private void getStatisticForPeriod(String startDate, String endDate, JSONArray resultJsonArray) {
+    private void getStatistic(String startDate, String endDate, JSONArray resultJsonArray) {
         String name;
         String lastName;
         String productTitle;
         Integer price;
+        Integer totalExpenses;
 
         JSONObject object = new JSONObject();
         JSONArray jsonArray = new JSONArray();
 
         Connection connection = DatabaseConnection.getConnection();
-        /*
-        String query = "SELECT last_name, name, title, price FROM customers " +
-                "LEFT JOIN purchases ON customers.id=purchases.customer_id " +
-                "LEFT JOIN products ON products.id=purchases.product_id " +
-                "WHERE purchase_date BETWEEN ? AND ? ";
-
-         */
-
-        String query = "SELECT last_name, name, title, price FROM customers " +
-                "JOIN purchases ON customers.id=purchases.customer_id " +
-                "JOIN products ON products.id=purchases.product_id " +
-                "WHERE purchase_date BETWEEN ? AND ?";
-
-
+        String query = "SELECT " +
+                "c.name AS customer_name, c.last_name AS customer_last_name, p.title AS product_title," +
+                "SUM(p.price) AS expenses, " +
+                "cust_total.totalExpenses " +
+                "FROM customers AS c " +
+                "INNER JOIN purchases AS pu ON c.id = pu.customer_id " +
+                "INNER JOIN products AS p ON p.id = pu.product_id " +
+                "LEFT JOIN ( " +
+                "SELECT " +
+                "c.id AS customer_id, " +
+                "SUM(pr.price) AS totalExpenses " +
+                "FROM customers AS c " +
+                "INNER JOIN purchases AS pu ON c.id = pu.customer_id " +
+                "INNER JOIN products AS pr ON pr.id = pu.product_id " +
+                "WHERE pu.purchase_date BETWEEN ? AND ? " +
+                "GROUP BY c.id " +
+                ") AS cust_total ON c.id = cust_total.customer_id " +
+                "WHERE pu.purchase_date BETWEEN ? AND ? " +
+                "GROUP BY c.name, c.last_name, p.title, cust_total.totalExpenses";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setDate(1, Date.valueOf(startDate));
             ps.setDate(2, Date.valueOf(endDate));
+            ps.setDate(3, Date.valueOf(startDate));
+            ps.setDate(4, Date.valueOf(endDate));
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    name = rs.getString("name");
-                    lastName = rs.getString("last_name");
-                    productTitle = rs.getString("title");
-                    price = rs.getInt("price");
-
+                    name = rs.getString("customer_name");
+                    lastName = rs.getString("customer_last_name");
+                    productTitle = rs.getString("product_title");
+                    price = rs.getInt("expenses");
+                    totalExpenses = rs.getInt("totalExpenses");
+                    //resultJsonArray по каждому customer включает 3 JSON: name, array с продуктами, totalExpenses
                     JSONObject nameJsonObject = new JSONObject();
                     nameJsonObject.put("name", lastName + " " + name);
                     resultJsonArray.add(nameJsonObject);
@@ -73,6 +82,10 @@ public class StatisticService {
                     jsonObjectOfArray.put("title", productTitle);
                     jsonObjectOfArray.put("price", price);
                     jsonArray.add(jsonObjectOfArray);
+
+                    JSONObject totalExpensesJsonObject = nameJsonObject;
+                    totalExpensesJsonObject.put("totalExpenses",totalExpenses);
+                    resultJsonArray.add(totalExpensesJsonObject);
                 }
             }
             object.put("purchases", jsonArray);// Затем в JSONObject array с покупками
@@ -80,7 +93,6 @@ public class StatisticService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
     private int getPeriod(String startDate, String endDate) {

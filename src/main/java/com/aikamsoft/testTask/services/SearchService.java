@@ -22,7 +22,7 @@ public class SearchService {
         Long badCustomersNumber;
 
         JSONArray inputJsonArray = new FileReaderService().redSearchCriteria(inputFile);
-        JSONArray resultJsonArray = new JSONArray(); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
+        JSONArray resultJsonArray = new JSONArray();
         JSONObject resultJsonObject = new JSONObject();
         SearchService searchService = new SearchService();
 
@@ -35,7 +35,7 @@ public class SearchService {
             if (criteria.containsKey("productName")) {
                 productName = (String) criteria.get("productName");
                 minTimes = (Long) criteria.get("minTimes");
-                //customerDao.findCustomerByProductNameAndMinTimes(productName,minTimes,resultJsonArray);
+                searchService.findCustomerByProductNameAndMinTimes(productName,minTimes,resultJsonArray);
             }
             if (criteria.containsKey("minExpenses")) {
                 minExpenses = (Long) criteria.get("minExpenses");
@@ -44,7 +44,7 @@ public class SearchService {
             }
             if (criteria.containsKey("badCustomers")) {
                 badCustomersNumber = (Long) criteria.get("badCustomers");
-                //searchService.findBadCustomers(badCustomersNumber,resultJsonArray);
+                searchService.findBadCustomers(badCustomersNumber,resultJsonArray);
             }
         }
         searchService.createResultJson(resultJsonArray, resultJsonObject);
@@ -72,7 +72,7 @@ public class SearchService {
                 }
             }
             object.put("results", jsonArray);
-            resultJsonArray.add(object);
+            resultJsonArray.add(object); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -81,6 +81,7 @@ public class SearchService {
     private void findCustomerByProductNameAndMinTimes(String productName, Long minTimes, JSONArray resultJsonArray) {
         String name;
         String lastName;
+
         JSONObject object = new JSONObject();
         JSONObject criteria = new JSONObject();
         criteria.put("productName", productName);
@@ -89,12 +90,12 @@ public class SearchService {
 
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
-        String query = "SELECT COUNT(purchases.id) last_name, name FROM customers " +
-                "INNER JOIN customers.id=purchases.customer_id " +
-                "INNER JOIN products.id=purchases.product_id " +
-                "GROUP BY customers.id " +
-                "WHERE products.title=? " +
-                "HAVING COUNT(purchases.id)=?";
+        String query = "SELECT last_name, name, COUNT(pur.id) FROM customers AS c " +
+                "INNER JOIN purchases AS pur ON c.id=pur.customer_id " +
+                "INNER JOIN products AS pr ON pr.id=pur.product_id " +
+                "WHERE pr.title=? "+
+                "GROUP BY last_name, name " +
+                "having count(pur.id) > ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, productName);
             ps.setLong(2, minTimes);
@@ -109,8 +110,7 @@ public class SearchService {
                 }
             }
             object.put("results", jsonArray);
-            System.out.println(object);
-            resultJsonArray.add(object);
+            resultJsonArray.add(object); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -144,7 +144,7 @@ public class SearchService {
                 }
             }
             object.put("results", jsonArray);
-            resultJsonArray.add(object);
+            resultJsonArray.add(object); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -153,20 +153,19 @@ public class SearchService {
     private void findBadCustomers(Long badCustomersNumber, JSONArray resultJsonArray) {
         String name;
         String lastName;
+
         JSONObject object = new JSONObject();
         JSONObject criteria = new JSONObject();
         criteria.put("badCustomers", badCustomersNumber);
         object.put("criteria", criteria);
+
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
-        String query = "SELECT last_name, name COUNT(last_name) " +
-                "FROM customers " +
-                "LEFT JOIN purchases ON customers.id=purchases.customer_id " +
-                "LEFT JOIN products ON products.id=purchases.product_id " +
-                "GROUP BY last_name " +
-                "HAVING count(last_name) = SELECT MIN(c) FROM(SELECT count(last_name) c " +
-                "FROM customers " +
-                "GROUP BY last_name))";
+        String query = "SELECT last_name, name, COUNT(pur.id) FROM customers AS c " +
+                "INNER JOIN purchases AS pur ON c.id=pur.customer_id " +
+                "INNER JOIN products AS pr ON pr.id=pur.product_id " +
+                "GROUP BY last_name, name " +
+                "having count(pur.id) < ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setLong(1, badCustomersNumber);
             try (ResultSet rs = ps.executeQuery()) {
@@ -181,12 +180,11 @@ public class SearchService {
             }
             object.put("results", jsonArray);
             System.out.println(object);
-            resultJsonArray.add(object);
+            resultJsonArray.add(object); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-
 
     private void createResultJson(JSONArray resultJsonArray, JSONObject resultJsonObject) {
         resultJsonObject.put("type", "search");
