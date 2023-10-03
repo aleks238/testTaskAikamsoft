@@ -10,12 +10,12 @@ import java.io.IOException;
 
 public class TestSearch {
     public static void main(String[] args) throws IOException, ParseException {
-        String inputFile = "C:/Users/lanxe/Desktop/test1.json";
+        String inputFile = "C:/Users/lanxe/Desktop/searchCriterias.json";
 
         SearchService searchService = new SearchService();
         JSONObject resultJsonObject = searchService.performSearchByCriteria(inputFile);
         System.out.println(resultJsonObject);
 
-        new FileWriterService().writeResultsToFile("output.json", resultJsonObject);
+        new FileWriterService().writeResultsToFile("outputSearch.json", resultJsonObject);
     }
 }
