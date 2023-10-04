@@ -9,21 +9,17 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
+import java.time.format.DateTimeParseException;
 
 @Slf4j
 @SuppressWarnings("unchecked")
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Main mainObject = new Main();
-        String outputFile = args[1];
         try {
             mainObject.parseInputArgs(mainObject, args);
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             e.printStackTrace();
-            new ExceptionWriter().writeToFileIOException(outputFile);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            new ExceptionWriter().writeToFileParseException(outputFile);
         }
     }
 
@@ -43,18 +39,28 @@ public class Main {
         }
     }
 
-    private void findCustomersByCriteria(String inputFile,String outputFile) throws IOException, ParseException {
-        SearchService searchService = new SearchService();
-        JSONObject resultJsonObject = searchService.performSearchByCriteria(inputFile);
-        System.out.println(resultJsonObject);
+    private void findCustomersByCriteria(String inputFile,String outputFile) throws IOException {
+        JSONObject resultJsonObject ;
+        try {
+            resultJsonObject = new SearchService().performSearchByCriteria(inputFile);
+        } catch (ParseException e) {
+            new ExceptionWriter().writeParseException(outputFile);
+            throw new RuntimeException(e);
+        }
         new FileWriterService().writeResultsToFile(outputFile, resultJsonObject);
     }
 
-    private void getStatistics(String inputFile, String outputFile) throws IOException, ParseException {
-        StatisticService statisticService = new StatisticService();
-        JSONObject resultJsonObject = statisticService.getStatisticsForPeriod(inputFile);
-        System.out.println(resultJsonObject);
+    private void getStatistics(String inputFile, String outputFile) throws IOException {
+        JSONObject resultJsonObject;
+        try {
+            resultJsonObject = new StatisticService().getStatisticsForPeriod(inputFile);
+        } catch (DateTimeParseException  e) {
+            new ExceptionWriter().writeDateTimeParseException(outputFile);
+            throw new RuntimeException();
+        } catch (ParseException e) {
+            new ExceptionWriter().writeParseException(outputFile);
+            throw new RuntimeException(e);
+        }
         new FileWriterService().writeResultsToFile(outputFile, resultJsonObject);
     }
-
 }

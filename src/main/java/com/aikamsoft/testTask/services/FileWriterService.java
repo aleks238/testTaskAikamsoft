@@ -12,8 +12,8 @@ public class FileWriterService {
         String desktopPath = str.replace("\\", "/");
         File outputFile = new File(desktopPath);
         boolean isCreated = outputFile.createNewFile();
+        //Если такой файл уже существует, создать новый файл с таким же именем с добавлением индекса
         int ind = 1;
-        //Если такой файл уже существует, добавить индекс
         while (!isCreated) {
             String[] tokens = nameOfOutputFile.split("\\.");
             str = System.getProperty("user.home") + File.separator + "Desktop" + File.separator + tokens[0] + ind + "." + tokens[1];

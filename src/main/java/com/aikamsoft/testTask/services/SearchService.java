@@ -35,7 +35,7 @@ public class SearchService {
             if (criteria.containsKey("productName")) {
                 productName = (String) criteria.get("productName");
                 minTimes = (Long) criteria.get("minTimes");
-                searchService.findCustomerByProductNameAndMinTimes(productName,minTimes,resultJsonArray);
+                searchService.findCustomerByProductNameAndMinTimes(productName, minTimes, resultJsonArray);
             }
             if (criteria.containsKey("minExpenses")) {
                 minExpenses = (Long) criteria.get("minExpenses");
@@ -44,7 +44,7 @@ public class SearchService {
             }
             if (criteria.containsKey("badCustomers")) {
                 badCustomersNumber = (Long) criteria.get("badCustomers");
-                searchService.findBadCustomers(badCustomersNumber,resultJsonArray);
+                searchService.findBadCustomers(badCustomersNumber, resultJsonArray);
             }
         }
         searchService.createResultJson(resultJsonArray, resultJsonObject);
@@ -53,36 +53,45 @@ public class SearchService {
 
     private void findCustomerByLastName(String lastName, JSONArray resultJsonArray) {
         String name;
+
         JSONObject object = new JSONObject();
         JSONObject criteria = new JSONObject();
         criteria.put("lastName", lastName);
         object.put("criteria", criteria);
+
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
         String query = "SELECT last_name, name FROM customers WHERE last_name = ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, lastName);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    name = rs.getString("name");
-                    JSONObject jsonObjectOfArray = new JSONObject();
-                    jsonObjectOfArray.put("name", name);
-                    jsonObjectOfArray.put("lastName", lastName);
-                    jsonArray.add(jsonObjectOfArray);
+                if (!rs.isBeforeFirst()) {
+                    JSONObject notFound = new JSONObject();
+                    notFound.put("lastName", lastName + " not found");
+                    jsonArray.add(notFound);
+                    object.put("results", jsonArray);
+                } else {
+                    while (rs.next()) {
+                        name = rs.getString("name");
+                        JSONObject jsonObjectOfArray = new JSONObject();
+                        jsonObjectOfArray.put("name", name);
+                        jsonObjectOfArray.put("lastName", lastName);
+                        jsonArray.add(jsonObjectOfArray);
+                    }
+                    object.put("results", jsonArray);
                 }
             }
-            object.put("results", jsonArray);
-            resultJsonArray.add(object); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
+            resultJsonArray.add(object);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
     private void findCustomerByProductNameAndMinTimes(String productName, Long minTimes, JSONArray resultJsonArray) {
         String name;
         String lastName;
-
         JSONObject object = new JSONObject();
+
         JSONObject criteria = new JSONObject();
         criteria.put("productName", productName);
         criteria.put("minTimes", minTimes);
@@ -93,24 +102,31 @@ public class SearchService {
         String query = "SELECT last_name, name, COUNT(pur.id) FROM customers AS c " +
                 "INNER JOIN purchases AS pur ON c.id=pur.customer_id " +
                 "INNER JOIN products AS pr ON pr.id=pur.product_id " +
-                "WHERE pr.title=? "+
+                "WHERE pr.title=? " +
                 "GROUP BY last_name, name " +
                 "having count(pur.id) > ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, productName);
             ps.setLong(2, minTimes);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    name = rs.getString("name");
-                    lastName = rs.getString("last_name");
-                    JSONObject jsonObjectOfArray = new JSONObject();
-                    jsonObjectOfArray.put("name", name);
-                    jsonObjectOfArray.put("lastName", lastName);
-                    jsonArray.add(jsonObjectOfArray);
+                if (!rs.isBeforeFirst()) {
+                    JSONObject notFound = new JSONObject();
+                    notFound.put("productName", productName + " not found");
+                    jsonArray.add(notFound);
+                    object.put("results", jsonArray);
+                } else {
+                    while (rs.next()) {
+                        name = rs.getString("name");
+                        lastName = rs.getString("last_name");
+                        JSONObject jsonObjectOfArray = new JSONObject();
+                        jsonObjectOfArray.put("name", name);
+                        jsonObjectOfArray.put("lastName", lastName);
+                        jsonArray.add(jsonObjectOfArray);
+                    }
+                    object.put("results", jsonArray);
                 }
             }
-            object.put("results", jsonArray);
-            resultJsonArray.add(object); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
+            resultJsonArray.add(object);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -134,17 +150,24 @@ public class SearchService {
             ps.setLong(1, maxPrice);
             ps.setLong(2, minPrice);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    name = rs.getString("name");
-                    lastName = rs.getString("last_name");
-                    JSONObject jsonObjectOfArray = new JSONObject();
-                    jsonObjectOfArray.put("name", name);
-                    jsonObjectOfArray.put("lastName", lastName);
-                    jsonArray.add(jsonObjectOfArray);
+                if (!rs.isBeforeFirst()) {
+                    JSONObject notFound = new JSONObject();
+                    notFound.put("minAndMax", "покупки в диапазоне " + minPrice + " и " + maxPrice + " не найдены");
+                    jsonArray.add(notFound);
+                    object.put("results", jsonArray);
+                } else {
+                    while (rs.next()) {
+                        name = rs.getString("name");
+                        lastName = rs.getString("last_name");
+                        JSONObject jsonObjectOfArray = new JSONObject();
+                        jsonObjectOfArray.put("name", name);
+                        jsonObjectOfArray.put("lastName", lastName);
+                        jsonArray.add(jsonObjectOfArray);
+                    }
+                    object.put("results", jsonArray);
                 }
             }
-            object.put("results", jsonArray);
-            resultJsonArray.add(object); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
+            resultJsonArray.add(object);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -161,11 +184,17 @@ public class SearchService {
 
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
-        String query = "SELECT last_name, name, COUNT(pur.id) FROM customers AS c " +
-                "INNER JOIN purchases AS pur ON c.id=pur.customer_id " +
-                "INNER JOIN products AS pr ON pr.id=pur.product_id " +
+
+        String query = "SELECT last_name, name, purchase_count " +
+                "FROM (SELECT last_name, name, count(pur.id) purchase_count " +
+                "FROM customers AS c " +
+                "JOIN purchases AS pur ON c.id=pur.customer_id " +
+                "JOIN products AS pr ON pr.id=pur.product_id " +
                 "GROUP BY last_name, name " +
-                "having count(pur.id) < ?";
+                ") total_purchase_count " +
+                "ORDER BY purchase_count " +
+                "LIMIT ?";
+
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setLong(1, badCustomersNumber);
             try (ResultSet rs = ps.executeQuery()) {
@@ -177,12 +206,11 @@ public class SearchService {
                     jsonObjectOfArray.put("lastName", lastName);
                     jsonArray.add(jsonObjectOfArray);
                 }
+                object.put("results", jsonArray);
             }
-            object.put("results", jsonArray);
-            System.out.println(object);
-            resultJsonArray.add(object); //resultJsonArray состоит из array of JSON, каждый JSON в этом array состоит из названия критерия (JSON) и array с данными
+            resultJsonArray.add(object);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 

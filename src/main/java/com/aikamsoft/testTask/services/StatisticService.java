@@ -1,6 +1,7 @@
 package com.aikamsoft.testTask.services;
 
 import com.aikamsoft.testTask.databaseConnection.DatabaseConnection;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -14,19 +15,20 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.Period;
 
+@Slf4j
 @SuppressWarnings("unchecked")
 public class StatisticService {
     public JSONObject getStatisticsForPeriod(String inputFile) throws IOException, ParseException {
         StatisticService statisticService = new StatisticService();
-
         JSONObject jsonObject = new FileReaderService().readStatPeriod(inputFile);
         JSONObject resultJsonObject = new JSONObject();
         JSONArray resultJsonArray = new JSONArray();
+        //Получение дат и периода
         String startDate = (String) jsonObject.get("startDate");
         String endDate = (String) jsonObject.get("endDate");
         Integer period = statisticService.getPeriod(startDate, endDate);
 
-        statisticService.getStatistic(startDate,endDate,resultJsonArray);
+        statisticService.getStatistic(startDate, endDate, resultJsonArray);
         statisticService.createResultJson(resultJsonArray, resultJsonObject, period);
         return resultJsonObject;
     }
@@ -36,7 +38,7 @@ public class StatisticService {
         String lastName;
         String productTitle;
         Integer price;
-        Integer totalExpenses;
+        Integer totalExpenses = null;
 
         JSONObject object = new JSONObject();
         JSONArray jsonArray = new JSONArray();
@@ -68,27 +70,26 @@ public class StatisticService {
             ps.setDate(4, Date.valueOf(endDate));
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    //Получение статистики
                     name = rs.getString("customer_name");
                     lastName = rs.getString("customer_last_name");
                     productTitle = rs.getString("product_title");
                     price = rs.getInt("expenses");
                     totalExpenses = rs.getInt("totalExpenses");
-                    //resultJsonArray по каждому customer включает 3 JSON: name, array с продуктами, totalExpenses
+                    //JSONObject для имени покупателя
                     JSONObject nameJsonObject = new JSONObject();
                     nameJsonObject.put("name", lastName + " " + name);
                     resultJsonArray.add(nameJsonObject);
-
+                    //JsonArray c покупками покупателя
                     JSONObject jsonObjectOfArray = new JSONObject();
                     jsonObjectOfArray.put("title", productTitle);
                     jsonObjectOfArray.put("price", price);
                     jsonArray.add(jsonObjectOfArray);
 
-                    JSONObject totalExpensesJsonObject = nameJsonObject;
-                    totalExpensesJsonObject.put("totalExpenses",totalExpenses);
-                    resultJsonArray.add(totalExpensesJsonObject);
                 }
+                object.put("purchases", jsonArray);
+                object.put("totalExpenses", totalExpenses);
             }
-            object.put("purchases", jsonArray);// Затем в JSONObject array с покупками
             resultJsonArray.add(object);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -107,4 +108,5 @@ public class StatisticService {
         resultJsonObject.put("totalDays", period);
         resultJsonObject.put("customers", resultJsonArray);
     }
+
 }
