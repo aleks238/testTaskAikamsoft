@@ -42,8 +42,8 @@ public class StatisticService {
 
         JSONObject object = new JSONObject();
         JSONArray jsonArray = new JSONArray();
-
         Connection connection = DatabaseConnection.getConnection();
+        /*Этот SQL запрос у меня не совсем получился, он достает не полностью ту информацию которая требуется в ТЗ. */
         String query = "SELECT " +
                 "c.name AS customer_name, c.last_name AS customer_last_name, p.title AS product_title," +
                 "SUM(p.price) AS expenses, " +

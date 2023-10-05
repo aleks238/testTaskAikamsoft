@@ -40,26 +40,26 @@ public class Main {
     }
 
     private void findCustomersByCriteria(String inputFile,String outputFile) throws IOException {
-        JSONObject resultJsonObject ;
+        JSONObject resultJsonObject = null;
         try {
             resultJsonObject = new SearchService().performSearchByCriteria(inputFile);
         } catch (ParseException e) {
             new ExceptionWriter().writeParseException(outputFile);
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         new FileWriterService().writeResultsToFile(outputFile, resultJsonObject);
     }
 
     private void getStatistics(String inputFile, String outputFile) throws IOException {
-        JSONObject resultJsonObject;
+        JSONObject resultJsonObject = null;
         try {
             resultJsonObject = new StatisticService().getStatisticsForPeriod(inputFile);
         } catch (DateTimeParseException  e) {
             new ExceptionWriter().writeDateTimeParseException(outputFile);
-            throw new RuntimeException();
+            e.printStackTrace();
         } catch (ParseException e) {
             new ExceptionWriter().writeParseException(outputFile);
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         new FileWriterService().writeResultsToFile(outputFile, resultJsonObject);
     }
