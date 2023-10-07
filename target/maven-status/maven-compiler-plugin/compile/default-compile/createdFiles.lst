@@ -1,0 +1,8 @@
+com\aikamsoft\testTask\services\FileWriterService.class
+com\aikamsoft\testTask\services\SearchService.class
+com\aikamsoft\testTask\sqlQueries\SqlQueries.class
+com\aikamsoft\testTask\databaseConnection\DatabaseConnection.class
+com\aikamsoft\testTask\services\StatisticService.class
+com\aikamsoft\testTask\services\ExceptionWriter.class
+com\aikamsoft\testTask\Main.class
+com\aikamsoft\testTask\services\FileReaderService.class

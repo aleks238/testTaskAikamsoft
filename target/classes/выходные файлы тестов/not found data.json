@@ -1,0 +1,22 @@
+{"type":"search",
+"results":[
+{"criteria":{"lastName":"Jackson1"},
+"results":[
+{"lastName":"Jackson1 not found"}
+]
+},
+{"criteria":{"minTimes":3,"productName":"bread1"},
+"results":[
+{"productName":"bread1 not found"}
+]
+},
+{"criteria":{"minPrice":1000,"maxPrice":4000},
+"results":[
+{"minAndMax":"покупки в диапазоне 1000 и 4000 не найдены"}
+]
+},
+{"criteria":{"badCustomers":2},
+"results":[
+{"lastName":"Jackson","name":"Bill"},{"lastName":"Wilson","name":"Bill"}
+]}
+]}

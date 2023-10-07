@@ -1,0 +1,14 @@
+{"totalDays":12,
+"customers":[
+{"name":"Jackson Bill"},
+{"name":"Wilson Bill"},
+{"name":"Jackson Jack"},
+{"name":"Jackson Jack"},
+{"purchases":[
+{"price":110,"title":"apple"},
+{"price":45,"title":"bread"},
+{"price":110,"title":"apple"},
+{"price":180,"title":"bread"}
+],"totalExpenses":290
+}],
+"type":"stat"}

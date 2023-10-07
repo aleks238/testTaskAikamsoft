@@ -1,0 +1,8 @@
+{
+	"criterias": [ 
+	    {"lastName": "Jackson1"}, 
+		          {"productName": "bread1", "minTimes": 3}, 
+	    {"minExpenses": 1000, "maxExpenses": 4000}, 
+	          {"badCustomers": 2} 
+      ]
+}
