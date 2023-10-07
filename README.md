@@ -11,7 +11,7 @@
   при необходимости прописать свои. В этом случае пересобрать jar используя плагин
   maven-assembly-plugin.
 3. Для удобства, чтобы не прописывать полный путь jar файл и .json файлы должны быть на рабочем столе. 
-4. Чтобы пользоваться командами ниже нужно переименовать файлы:jar файл в папке target на test.jar, входной файл поиска на searchCriteria.json, входной файл статистики на statCriteria.json:
-* Команды:
+
+* Образец команд:
 * Поиск по критериям: java -jar test.jar search outputSearch.json searchCriteria.json
 * Получить статистику: java -jar test.jar stat outputStat.json statCriteria.json

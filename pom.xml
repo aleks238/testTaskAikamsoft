@@ -17,8 +17,11 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
                 <configuration>
+                    <finalName>test</finalName>
                     <archive>
                         <manifest>
                             <mainClass>com.aikamsoft.testTask.Main</mainClass>
@@ -27,6 +30,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <appendAssemblyId>false</appendAssemblyId><!--remove jar-with-dependencies suffix-->
                 </configuration>
             </plugin>
         </plugins>
