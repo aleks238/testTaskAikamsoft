@@ -1,6 +1,7 @@
 package com.aikamsoft.testTask.services;
 
 import com.aikamsoft.testTask.databaseConnection.DatabaseConnection;
+import com.aikamsoft.testTask.sqlQueries.SqlQueries;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -61,7 +62,7 @@ public class SearchService {
 
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
-        String query = "SELECT last_name, name FROM customers WHERE last_name = ?";
+        String query = SqlQueries.findCustomerByLastName;
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, lastName);
             try (ResultSet rs = ps.executeQuery()) {
@@ -99,12 +100,7 @@ public class SearchService {
 
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
-        String query = "SELECT last_name, name, COUNT(pur.id) FROM customers AS c " +
-                "INNER JOIN purchases AS pur ON c.id=pur.customer_id " +
-                "INNER JOIN products AS pr ON pr.id=pur.product_id " +
-                "WHERE pr.title=? " +
-                "GROUP BY last_name, name " +
-                "having count(pur.id) > ?";
+        String query = SqlQueries.findCustomerByProductNameAndMinTimes;
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, productName);
             ps.setLong(2, minTimes);
@@ -142,10 +138,7 @@ public class SearchService {
         object.put("criteria", criteria);
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
-        String query = "SELECT last_name, name FROM customers " +
-                "LEFT JOIN purchases ON customers.id=purchases.customer_id " +
-                "LEFT JOIN products ON products.id=purchases.product_id " +
-                "WHERE price <= ? AND price >= ?";
+        String query = SqlQueries.findCustomersByMinAndMaxPrice;
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setLong(1, maxPrice);
             ps.setLong(2, minPrice);
@@ -184,17 +177,7 @@ public class SearchService {
 
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
-
-        String query = "SELECT last_name, name, purchase_count " +
-                "FROM (SELECT last_name, name, count(pur.id) purchase_count " +
-                "FROM customers AS c " +
-                "JOIN purchases AS pur ON c.id=pur.customer_id " +
-                "JOIN products AS pr ON pr.id=pur.product_id " +
-                "GROUP BY last_name, name " +
-                ") total_purchase_count " +
-                "ORDER BY purchase_count " +
-                "LIMIT ?";
-
+        String query = SqlQueries.findBadCustomers;
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setLong(1, badCustomersNumber);
             try (ResultSet rs = ps.executeQuery()) {

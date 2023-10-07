@@ -14,7 +14,7 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.Period;
-
+import com.aikamsoft.testTask.sqlQueries.SqlQueries;
 @Slf4j
 @SuppressWarnings("unchecked")
 public class StatisticService {
@@ -43,26 +43,7 @@ public class StatisticService {
         JSONObject object = new JSONObject();
         JSONArray jsonArray = new JSONArray();
         Connection connection = DatabaseConnection.getConnection();
-        /*Этот SQL запрос у меня не совсем получился, он достает не полностью ту информацию которая требуется в ТЗ. */
-        String query = "SELECT " +
-                "c.name AS customer_name, c.last_name AS customer_last_name, p.title AS product_title," +
-                "SUM(p.price) AS expenses, " +
-                "cust_total.totalExpenses " +
-                "FROM customers AS c " +
-                "INNER JOIN purchases AS pu ON c.id = pu.customer_id " +
-                "INNER JOIN products AS p ON p.id = pu.product_id " +
-                "LEFT JOIN ( " +
-                "SELECT " +
-                "c.id AS customer_id, " +
-                "SUM(pr.price) AS totalExpenses " +
-                "FROM customers AS c " +
-                "INNER JOIN purchases AS pu ON c.id = pu.customer_id " +
-                "INNER JOIN products AS pr ON pr.id = pu.product_id " +
-                "WHERE pu.purchase_date BETWEEN ? AND ? " +
-                "GROUP BY c.id " +
-                ") AS cust_total ON c.id = cust_total.customer_id " +
-                "WHERE pu.purchase_date BETWEEN ? AND ? " +
-                "GROUP BY c.name, c.last_name, p.title, cust_total.totalExpenses";
+        String query = SqlQueries.getStatistic;
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setDate(1, Date.valueOf(startDate));
             ps.setDate(2, Date.valueOf(endDate));
